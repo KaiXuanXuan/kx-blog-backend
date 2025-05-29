@@ -20,17 +20,26 @@ module.exports = (appInfo) => {
 
   // 静态资源配置（使public/images目录可通过/images前缀访问）
   config.static = {
-    prefix: '/images', // 前端访问URL前缀
-    dir: path.join(appInfo.baseDir, 'app/public/images'), // 服务器存储目录
-    dynamic: true, // 动态加载文件
+    prefix: '/',
+    dirs: [
+      {
+        prefix: '/images', // 前端访问URL前缀
+        dir: path.join(appInfo.baseDir, 'app/public/images'), // 服务器存储目录
+      },
+      {
+        prefix: '/icons',
+        dir: path.join(appInfo.baseDir, 'app/public/icons'),
+      },
+    ],
+    dynamic: true,
     preload: false,
-    maxAge: 31536000, // 浏览器缓存时间（秒）
+    maxAge: 31536000,
     buffer: false,
   };
   // 可选：配置中间件作用范围（如排除登录接口）
   config.auth = {
     enable: true,
-    match: (ctx) => !['/api/user/login', '/api/user/register', '/api/blog/list', '/api/blog/detail'].includes(ctx.path),
+    match: (ctx) => !['/api/user/login', '/api/user/register', '/api/blog/list', '/api/blog/detail', '/api/resource/items', '/api/resource/categories'].includes(ctx.path),
   };
 
   // 模板引擎
@@ -50,6 +59,7 @@ module.exports = (appInfo) => {
     fileExtensions: ['.jpg', '.jpeg', '.png', '.gif', '.pdf'],
     // 上传文件存储目录
     uploadDir: path.join(appInfo.baseDir, 'app/public/images'),
+    iconsDir: path.join(appInfo.baseDir, 'app/public/icons'),
   };
 
   // mysql配置

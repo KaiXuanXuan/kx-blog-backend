@@ -41,6 +41,7 @@ class BlogController extends Controller {
     const filePath = path.join(uploadDir, fileName);
 
     // 数据库存储相对路径（public/images/文件名）
+    await fs.promises.mkdir(uploadDir, { recursive: true });
     cover_image = `/images/${fileName}`;
     await fs.promises.writeFile(filePath, buffer);
 

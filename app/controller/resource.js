@@ -1,12 +1,15 @@
 'use strict';
 
 const { Controller } = require('egg');
+const path = require('path');
+const fs = require('fs');
 
 class ResourceController extends Controller {
   // 添加资源分类
   async addCategory() {
     const { ctx, service } = this;
     const { title } = ctx.request.body;
+
     if (!title) {
       ctx.status = 400;
       return (ctx.body = { code: 400, message: '分类标题为必填参数' });
@@ -26,7 +29,28 @@ class ResourceController extends Controller {
   // 添加资源条目
   async addItem() {
     const { ctx, service } = this;
-    const { category_id, title, icon, item_desc, item_url } = ctx.request.body;
+    const { category_id, title, item_desc, item_url } = JSON.parse(ctx.request.body.data);
+    
+    const file = ctx.request.files[0];
+    const base64String = await fs.promises.readFile(file.filepath, 'utf8');
+    const matches = base64String.match(/^data:image\/(\w+);base64,(.*)$/);
+    if (!matches || matches.length !== 3) {
+      ctx.status = 400;
+      return (ctx.body = { code: 400, message: '无效的图片格式' });
+    }
+    const fileType = matches[1];
+    const base64Data = matches[2];
+    const buffer = Buffer.from(base64Data, 'base64');
+    const iconsDir = this.config.multipart.iconsDir || path.join(this.config.baseDir, 'app/public/icons');
+    const fileName = `icon_${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileType}`;
+    const filePath = path.join(iconsDir, fileName);
+
+    // 确保图标目录存在（递归创建）
+    await fs.promises.mkdir(iconsDir, { recursive: true });
+
+    const icon = `/icons/${fileName}`;
+    await fs.promises.writeFile(filePath, buffer);
+
     if (!category_id || !title || !item_url) {
       ctx.status = 400;
       return (ctx.body = { code: 400, message: '分类ID、标题、链接为必填参数' });
@@ -121,7 +145,11 @@ class ResourceController extends Controller {
       return (ctx.body = { code: 400, message: '分类ID为必填参数' });
     }
     const items = await service.resource.listItemsByCategory(category_id);
-    ctx.body = { code: 200, message: '获取条目列表成功', data: items };
+    const fullItems = items.map((item) => ({
+      ...item,
+      icon: `${ctx.origin}${item.icon}`,
+    }));
+    ctx.body = { code: 200, message: '获取条目列表成功', data: fullItems };
   }
 }
 
