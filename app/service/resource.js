@@ -17,9 +17,9 @@ class ResourceService extends Service {
   }
 
   // 添加资源条目
-  async addItem({ category_id, title, icon, desc, url }) {
+  async addItem({ category_id, title, icon, item_desc, item_url }) {
     const { app } = this;
-    const result = await app.mysql.insert('resource_item', { category_id, title, icon, desc, url });
+    const result = await app.mysql.insert('resource_item', { category_id, title, icon, item_desc, item_url });
     return result.insertId;
   }
 
@@ -42,9 +42,9 @@ class ResourceService extends Service {
   }
 
   // 更新资源条目
-  async updateItem({ id, title, icon, desc, url }) {
+  async updateItem({ id, title, icon, item_desc, item_url }) {
     const { app } = this;
-    const result = await app.mysql.update('resource_item', { title, icon, desc, url }, { where: { id } });
+    const result = await app.mysql.update('resource_item', { title, icon, item_desc, item_url }, { where: { id } });
     return result.affectedRows;
   }
 
@@ -72,10 +72,10 @@ class ResourceService extends Service {
       ),
       // 搜索条目标题或描述含有关键词的记录
       app.mysql.query(
-        `SELECT i.id, i.title, i.desc, i.category_id, c.title AS category_title 
+        `SELECT i.id, i.title, i.item_desc, i.category_id, c.title AS category_title 
          FROM resource_item i
          LEFT JOIN resource_category c ON i.category_id = c.id
-         WHERE i.title LIKE ? OR i.desc LIKE ?`,
+         WHERE i.title LIKE ? OR i.item_desc LIKE ?`,
         [`%${keyword}%`, `%${keyword}%`]
       )
     ]);

@@ -26,12 +26,12 @@ class ResourceController extends Controller {
   // 添加资源条目
   async addItem() {
     const { ctx, service } = this;
-    const { category_id, title, icon, desc, url } = ctx.request.body;
-    if (!category_id || !title || !url) {
+    const { category_id, title, icon, item_desc, item_url } = ctx.request.body;
+    if (!category_id || !title || !item_url) {
       ctx.status = 400;
       return (ctx.body = { code: 400, message: '分类ID、标题、链接为必填参数' });
     }
-    const result = await service.resource.addItem({ category_id, title, icon, desc, url });
+    const result = await service.resource.addItem({ category_id, title, icon, item_desc, item_url });
     ctx.status = 200;
     ctx.body = { code: 200, message: '资源条目添加成功', data: { itemId: result } };
   }
@@ -71,12 +71,12 @@ class ResourceController extends Controller {
   // 更新资源条目
   async updateItem() {
     const { ctx, service } = this;
-    const { id, title, icon, desc, url } = ctx.request.body;
-    if (!id || !title || !url) {
+    const { id, title, icon, item_desc, item_url } = ctx.request.body;
+    if (!id || !title || !item_url) {
       ctx.status = 400;
       return (ctx.body = { code: 400, message: '条目ID、标题、链接为必填参数' });
     }
-    const result = await service.resource.updateItem({ id, title, icon, desc, url });
+    const result = await service.resource.updateItem({ id, title, icon, item_desc, item_url });
     if (result === 0) {
       ctx.status = 404;
       return (ctx.body = { code: 404, message: '条目不存在' });
