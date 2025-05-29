@@ -71,9 +71,10 @@ class BlogController extends Controller {
       author: username,
       cover_image,
     });
+
     ctx.status = 200;
     ctx.body = { code: 200, message: '博客发布成功', data: { blogId: result } };
-    console.log(ctx.body);
+    console.log(ctx.body, ctx.status);
   }
   // 获取博客概要列表
   async list() {
@@ -84,7 +85,7 @@ class BlogController extends Controller {
       ...blog,
       cover_image: `${ctx.origin}${blog.cover_image}`,
     }));
-    ctx.body = { code: 200, data: formattedBlogList };
+    ctx.body = { code: 200, message:'获取列表成功' ,data: formattedBlogList };
   }
 
   // 更新博客

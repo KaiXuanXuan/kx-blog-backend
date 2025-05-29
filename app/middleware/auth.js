@@ -22,8 +22,8 @@ module.exports = (options, app) => {
       ctx.state.user = decoded; // 将用户信息挂载到 ctx.state
     } catch (err) {
       ctx.status = 401;
-      ctx.body = { code: 401, message: '无效的 Token 或已过期 ' + err };
+      return ctx.body = { code: 401, message: '无效的 Token 或已过期 ' + err };
     }
-    next();
+    await next();
   };
 };
