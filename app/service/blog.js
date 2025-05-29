@@ -11,7 +11,7 @@ class BlogService extends Service {
       markdown_content,
       category,
       author,
-      cover_image, // 新增封面路径字段
+      cover_image,
     });
     return blogResult.insertId;
   }

@@ -2,6 +2,7 @@
 
 const { Controller } = require('egg');
 const path = require('path');
+const fs = require('fs');
 
 class BlogController extends Controller {
   // 创建博客
@@ -20,15 +21,29 @@ class BlogController extends Controller {
       return (ctx.body = { code: 400, message: '文件上传失败' });
     }
     const file = files[0];
-    // 利用插件配置获取上传目录（已通过egg-multipart配置自动创建）
-    const uploadDir = this.config.multipart.uploadDir || path.join(this.config.baseDir, 'app/public/images');
+
+    // 解析base64编码的图片
+    let cover_image = '';
+
+    const base64String = await fs.promises.readFile(file.filepath, 'utf8');
+    const matches = base64String.match(/^data:image\/(\w+);base64,(.*)$/);
+    if (!matches || matches.length !== 3) {
+      ctx.status = 400;
+      return (ctx.body = { code: 400, message: '无效的图片格式' });
+    }
+    const fileType = matches[1];
+    const base64Data = matches[2];
+    const buffer = Buffer.from(base64Data, 'base64');
+
     // 生成唯一文件名（时间戳+原文件名）
-    const fileName = `blog_${Date.now()}_${path.basename(file.filename)}`;
-    const targetPath = path.join(uploadDir, fileName);
-    // 使用插件推荐的文件移动方法（兼容不同存储引擎）
-    await ctx.helper.moveFile(file.filepath, targetPath);
+    const uploadDir = this.config.multipart.uploadDir || path.join(this.config.baseDir, 'app/public/images');
+    const fileName = `blog_${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileType}`;
+    const filePath = path.join(uploadDir, fileName);
+
     // 数据库存储相对路径（public/images/文件名）
-    const cover_image = `/images/${fileName}`;
+    cover_image = `/images/${fileName}`;
+    await fs.promises.writeFile(filePath, buffer);
+
     // 从FormData中获取JSON数据字段
     const dataStr = ctx.request.body.data;
     if (!dataStr) {
@@ -48,7 +63,7 @@ class BlogController extends Controller {
       ctx.status = 400;
       return (ctx.body = { code: 400, message: 'data字段格式错误' });
     }
-    // 调用服务层创建    
+    // 调用服务层创建
     const result = await service.blog.add({
       title,
       markdown_content,
@@ -56,6 +71,7 @@ class BlogController extends Controller {
       author: username,
       cover_image,
     });
+    ctx.status = 200;
     ctx.body = { code: 200, message: '博客发布成功', data: { blogId: result } };
     console.log(ctx.body);
   }
@@ -63,8 +79,12 @@ class BlogController extends Controller {
   async list() {
     const { ctx, service } = this;
     const blogList = await service.blog.list();
-    console.log(blogList);
-    ctx.body = { code: 200, data: blogList };
+    // 为封面图片添加完整后端地址
+    const formattedBlogList = blogList.map((blog) => ({
+      ...blog,
+      cover_image: `${ctx.origin}${blog.cover_image}`,
+    }));
+    ctx.body = { code: 200, data: formattedBlogList };
   }
 
   // 更新博客
@@ -147,6 +167,8 @@ class BlogController extends Controller {
       ctx.status = 404;
       return (ctx.body = { code: 404, message: '博客不存在' });
     }
+    // 为封面图片添加完整后端地址
+    blog.cover_image = `${ctx.origin}${blog.cover_image}`;
     ctx.body = { code: 200, data: blog };
   }
 }
