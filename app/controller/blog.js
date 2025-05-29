@@ -2,7 +2,6 @@
 
 const { Controller } = require('egg');
 const path = require('path');
-const fs = require('fs');
 
 class BlogController extends Controller {
   // 创建博客
@@ -49,7 +48,7 @@ class BlogController extends Controller {
       ctx.status = 400;
       return (ctx.body = { code: 400, message: 'data字段格式错误' });
     }
-    // 调用服务层创建
+    // 调用服务层创建    
     const result = await service.blog.add({
       title,
       markdown_content,
@@ -57,7 +56,8 @@ class BlogController extends Controller {
       author: username,
       cover_image,
     });
-    ctx.body = { code: 200, message: '文章创建成功', data: { blogId: result } };
+    ctx.body = { code: 200, message: '博客发布成功', data: { blogId: result } };
+    console.log(ctx.body);
   }
   // 获取博客概要列表
   async list() {

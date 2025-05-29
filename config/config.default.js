@@ -50,9 +50,6 @@ module.exports = (appInfo) => {
     fileExtensions: ['.jpg', '.jpeg', '.png', '.gif', '.pdf'],
     // 上传文件存储目录
     uploadDir: path.join(appInfo.baseDir, 'app/public/images'),
-    checkFile(filename){
-      return true;
-    }
   };
 
   // mysql配置
