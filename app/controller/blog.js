@@ -63,12 +63,8 @@ class BlogController extends Controller {
   async list() {
     const { ctx, service } = this;
     const blogList = await service.blog.list();
-    // 过滤掉markdown内容
-    const result = blogList.map((blog) => {
-      const { markdown_content, ...rest } = blog;
-      return rest;
-    });
-    ctx.body = { code: 200, data: result };
+    console.log(blogList);
+    ctx.body = { code: 200, data: blogList };
   }
 
   // 更新博客

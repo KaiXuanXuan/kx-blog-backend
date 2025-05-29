@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS blog (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(255) NOT NULL COMMENT '文章标题',
-  markdown_content LONGTEXT COMMENT 'markdown文章内容',
+  markdown_content MEDIUMTEXT COMMENT 'markdown文章内容',
   author VARCHAR(50) NOT NULL COMMENT '作者',
   category VARCHAR(50) COMMENT '分类',
   cover_image VARCHAR(255) COMMENT '封面图片路径',
