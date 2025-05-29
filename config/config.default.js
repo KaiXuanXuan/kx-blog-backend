@@ -43,12 +43,16 @@ module.exports = (appInfo) => {
 
   // multipart配置
   config.multipart = {
+    mode: 'file',
     // 允许上传的文件大小
     fileSize: '50mb',
     // 允许上传的文件类型
     fileExtensions: ['.jpg', '.jpeg', '.png', '.gif', '.pdf'],
     // 上传文件存储目录
     uploadDir: path.join(appInfo.baseDir, 'app/public/images'),
+    checkFile(filename){
+      return true;
+    }
   };
 
   // mysql配置

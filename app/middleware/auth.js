@@ -1,7 +1,6 @@
 'use strict';
 module.exports = (options, app) => {
   return async (ctx, next) => {
-    console.log('auth.js', ctx);
     const authHeader = ctx.get('Authorization'); // 获取完整 Authorization 头
     if (!authHeader) {
       ctx.status = 401;
