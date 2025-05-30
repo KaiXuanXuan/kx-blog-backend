@@ -61,38 +61,63 @@ class ResourceService extends Service {
     return await app.mysql.select('resource_item', { where: { category_id } });
   }
 
-  // 模糊搜索（分类标题/条目标题/条目描述）
+  // 模糊搜索（返回分类包含条目的树形结构）
   async search(keyword) {
     const { app } = this;
-    const [categories, items] = await Promise.all([
-      // 搜索分类标题含有关键词的记录
-      app.mysql.query(
-        'SELECT id, title FROM resource_category WHERE title LIKE ?',
-        [`%${keyword}%`]
-      ),
-      // 搜索条目标题或描述含有关键词的记录
-      app.mysql.query(
-        `SELECT i.id, i.title, i.item_desc, i.category_id, c.title AS category_title 
-         FROM resource_item i
-         LEFT JOIN resource_category c ON i.category_id = c.id
-         WHERE i.title LIKE ? OR i.item_desc LIKE ?`,
-        [`%${keyword}%`, `%${keyword}%`]
-      )
-    ]);
 
-    // 处理分类匹配结果（补充关联条目）
-    const categoryResults = await Promise.all(
-      categories.map(async category => {
-        const items = await app.mysql.select('resource_item', { where: { category_id: category.id } });
-        return { ...category, type: 'category', items };
-      })
+    // 1. 获取所有需要返回的分类ID（分类标题匹配 或 其下任意条目标题/描述匹配）
+    const categoryIdsResult = await app.mysql.query(
+      `
+      SELECT DISTINCT c.id 
+      FROM resource_category c
+      LEFT JOIN resource_item i ON c.id = i.category_id
+      WHERE c.title LIKE ? OR i.title LIKE ? OR i.item_desc LIKE ?
+    `,
+      [`%${keyword}%`, `%${keyword}%`, `%${keyword}%`]
     );
 
-    // 处理条目匹配结果（标记类型）
-    const itemResults = items.map(item => ({ ...item, type: 'item' }));
+    if (categoryIdsResult.length === 0) return [];
 
-    // 合并并返回结果
-    return [...categoryResults, ...itemResults];
+    const categoryIds = categoryIdsResult.map((row) => row.id);
+
+    // 2. 一次性查询所有匹配分类及其完整条目（避免N+1查询）
+    const categoriesWithItems = await app.mysql.query(
+      `
+      SELECT c.id AS category_id, c.title AS category_title, 
+             i.id AS item_id, i.title AS item_title, i.item_desc, i.icon, i.item_url
+      FROM resource_category c
+      LEFT JOIN resource_item i ON c.id = i.category_id
+      WHERE c.id IN (?)
+    `,
+      [categoryIds]
+    );
+
+    // 3. 构建树形结构（分类 -> 条目数组）
+    const treeMap = new Map();
+    categoriesWithItems.forEach((row) => {
+      // 初始化分类对象（仅首次出现时）
+      if (!treeMap.has(row.category_id)) {
+        treeMap.set(row.category_id, {
+          id: row.category_id,
+          title: row.category_title,
+          items: [],
+        });
+      }
+
+      // 添加条目（排除无条目的情况）
+      if (row.item_id) {
+        treeMap.get(row.category_id).items.push({
+          id: row.item_id,
+          title: row.item_title,
+          item_desc: row.item_desc,
+          item_url: row.item_url,
+          icon: row.icon,
+        });
+      }
+    });
+
+    // 转换Map为数组返回
+    return Array.from(treeMap.values());
   }
 }
 
