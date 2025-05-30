@@ -57,7 +57,7 @@ class ResourceService extends Service {
 
   // 按分类获取资源条目
   async listItemsByCategory(category_id) {
-    const { app } = this;
+    const { app, ctx } = this;
     return await app.mysql.select('resource_item', { where: { category_id } });
   }
 
@@ -111,7 +111,7 @@ class ResourceService extends Service {
           title: row.item_title,
           item_desc: row.item_desc,
           item_url: row.item_url,
-          icon: row.icon,
+          icon: `${this.ctx.origin}${row.icon}`,
         });
       }
     });
