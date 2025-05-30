@@ -1,1 +1,1 @@
-UPDATE users SET is_admin = 1 WHERE username = '目标用户名';
+UPDATE users SET is_admin = 1 WHERE username = 'kaixuan';

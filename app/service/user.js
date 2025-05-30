@@ -41,6 +41,13 @@ class UserService extends Service {
     });
     return result;
   }
+
+    // 判断是否有管理员权限
+    async hasAdminPermission() {
+      const userId = this.ctx.state.user.id;
+      const user = await this.getUserById(userId);
+      return user?.is_admin || false;
+    }
 }
 
 module.exports = UserService;

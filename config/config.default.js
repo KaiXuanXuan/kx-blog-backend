@@ -16,7 +16,7 @@ module.exports = (appInfo) => {
   config.keys = appInfo.name + '_1748072458315_8998';
 
   // add your middleware config here
-  config.middleware = ['auth'];
+  config.middleware = ['auth', 'permission'];
 
   // 静态资源配置（使public/images目录可通过/images前缀访问）
   config.static = {
@@ -40,6 +40,21 @@ module.exports = (appInfo) => {
   config.auth = {
     enable: true,
     match: (ctx) => !['/api/user/login', '/api/user/register', '/api/blog/list', '/api/blog/detail', '/api/resource/items', '/api/resource/categories'].includes(ctx.path),
+  };
+  config.permission = {
+    enable: true,
+    match: (ctx) =>
+      [
+        '/api/blog/add',
+        '/api/blog/update',
+        '/api/blog/delete',
+        '/api/resource/category/add',
+        '/api/resource/category/update',
+        '/api/resource/category/delete',
+        '/api/resource/item/add',
+        '/api/resource/item/update',
+        '/api/resource/item/delete',
+      ].includes(ctx.path),
   };
 
   // 模板引擎
