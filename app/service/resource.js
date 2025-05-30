@@ -41,6 +41,13 @@ class ResourceService extends Service {
     return conn;
   }
 
+  // 更新资源条目
+  async updateItem({ id, title, icon, item_desc, item_url }) {
+    const { app } = this;
+    const result = await app.mysql.update('resource_item', { title, icon, item_desc, item_url }, { where: { id } });
+    return result.affectedRows;
+  }
+
   // 删除资源条目
   async deleteItem(id) {
     const { app } = this;

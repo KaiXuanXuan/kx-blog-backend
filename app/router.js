@@ -9,12 +9,13 @@ module.exports = (app) => {
   // 资源分类路由
   router.post('/api/resource/category/add', controller.resource.addCategory);
   router.get('/api/resource/categories', controller.resource.listCategories);
-  router.post('/api/resource/category/update', controller.resource.updateCategory);
+  router.put('/api/resource/category/update', controller.resource.updateCategory);
   router.delete('/api/resource/category/delete', controller.resource.deleteCategory);
 
   // 资源条目路由
   router.post('/api/resource/item/add', controller.resource.addItem);
   router.get('/api/resource/items', controller.resource.listItemsByCategory);
+  router.put('/api/resource/item/update', controller.resource.updateItem);
   router.delete('/api/resource/item/delete', controller.resource.deleteItem);
 
   // 资源模糊搜索路由
