@@ -1,7 +1,6 @@
 // 权限校验中间件
 module.exports = (options, app) => {
   return async (ctx, next) => {
-    console.log('进来了');
 
     // 从请求中获取用户ID（假设通过JWT存储在 ctx.state.user）
     const userId = ctx.state.user?.id;
