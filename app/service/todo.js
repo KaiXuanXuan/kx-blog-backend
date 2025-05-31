@@ -52,6 +52,36 @@ class TodoService extends Service {
     );
   }
 
+  // 转发文本到第三方agent
+  async forwardTextToAgent(text) {
+    const { app } = this;
+    // 1. 调用第一个接口获取SQL查询语句
+    const firstAgentUrl = app.config.thirdPartyAgentUrl;
+    const sqlResponse = await app.curl(firstAgentUrl, {
+      method: 'POST',
+      data: { text },
+      dataType: 'json',
+      contentType: 'json'
+    });
+    if (sqlResponse.status !== 200) throw new Error('第一次第三方agent请求失败');
+    const sql = sqlResponse.data.sql;
+
+    // 2. 执行SQL查询数据库
+    const queryResult = await app.mysql.query(sql);
+
+    // 3. 调用第二个接口发送查询结果
+    const secondAgentUrl = app.config.thirdPartyAgentResultUrl;
+    const resultResponse = await app.curl(secondAgentUrl, {
+      method: 'POST',
+      data: { result: queryResult },
+      dataType: 'json',
+      contentType: 'json'
+    });
+    if (resultResponse.status !== 200) throw new Error('第二次第三方agent请求失败');
+
+    return resultResponse.data;
+  }
+
   // 删除待办
   async deleteTodo(id) {
     const { app } = this;

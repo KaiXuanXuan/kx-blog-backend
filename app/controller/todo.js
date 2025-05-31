@@ -46,6 +46,15 @@ class TodoController extends Controller {
     ctx.body = { success: true, data: todayTodos };
   }
 
+  // 7. 转发到第三方agent接口
+  async forwardToAgent() {
+    const { ctx } = this;
+    const { text } = ctx.request.body;
+    if (!text) ctx.throw(400, '输入文本不能为空');
+    const result = await ctx.service.todo.forwardTextToAgent(text);
+    ctx.body = { success: true, data: result };
+  }
+
   // 6. 删除接口
   async delete() {
     const { ctx } = this;
