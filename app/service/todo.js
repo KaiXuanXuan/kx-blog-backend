@@ -4,14 +4,14 @@ const { Service } = require('egg');
 
 class TodoService extends Service {
   // 新增待办
-  async addTodo({ title, content }) {
+  async addTodo({ title, content, progress }) {
     const { app } = this;
-    const result = await app.mysql.insert('todo', { title, content, progress: progress || 0 });
+    const result = await app.mysql.insert('todo', { title, content, progress });
     return result.insertId;
   }
 
   // 更新内容（标题和内容）
-  async updateTodoContent({ id, title, content }) {
+  async updateTodoContent({ id, title, content, progress }) {
     const { app } = this;
     const result = await app.mysql.update('todo', { title, content, progress }, { where: { id } });
     return result.affectedRows;
@@ -36,7 +36,7 @@ class TodoService extends Service {
     const { app } = this;
     const offset = (page - 1) * pageSize;
     const [todos, total] = await Promise.all([
-      app.mysql.select('todo', { order: [[ 'created_at', 'DESC' ]], limit: pageSize, offset }),
+      app.mysql.select('todo', { order: [[ 'create_time', 'DESC' ]], limit: pageSize, offset }),
       app.mysql.count('todo')
     ]);
     return { list: todos, total };
@@ -47,7 +47,7 @@ class TodoService extends Service {
     const { app } = this;
     const today = new Date().toISOString().split('T')[0];
     return await app.mysql.query(
-      'SELECT * FROM todo WHERE DATE(created_at) = ? OR (status = 0 AND DATE(created_at) < ?)',
+      'SELECT * FROM todo WHERE DATE(create_time) = ? OR (status = 0 AND DATE(create_time) < ?)',
       [today, today]
     );
   }
