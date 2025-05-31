@@ -6,20 +6,20 @@ class TodoController extends Controller {
   // 1. 新增待办接口
   async add() {
     const { ctx } = this;
-    const { title, content } = ctx.request.body;
+    const { title, content, progress = 0 } = ctx.request.body; // 默认进度0
     if (!title) ctx.throw(400, '标题不能为空');
     const todoId = await ctx.service.todo.addTodo({ title, content });
-    ctx.body = { success: true, data: { id: todoId }, message: '待办创建成功' };
+    ctx.body = { success: true, data: { id: todoId, progress }, message: '待办创建成功' }; // 返回进度
   }
 
   // 2. 更新内容接口（标题和内容）
   async updateContent() {
     const { ctx } = this;
-    const { id, title, content } = ctx.request.body;
+    const { id, title, content, progress } = ctx.request.body; // 接收进度参数
     if (!id || !title) ctx.throw(400, 'ID和标题不能为空');
     const affectedRows = await ctx.service.todo.updateTodoContent({ id, title, content });
-    ctx.body = { success: affectedRows > 0, message: affectedRows > 0 ? '内容更新成功' : '未找到对应待办' };
-  }
+    ctx.body = { success: affectedRows > 0, message: affectedRows > 0 ? '内容及进度更新成功' : '未找到对应待办' };
+  } // 更新提示语包含进度
 
   // 3. 更新状态接口
   async updateStatus() {

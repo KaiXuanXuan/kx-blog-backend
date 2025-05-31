@@ -6,21 +6,28 @@ class TodoService extends Service {
   // 新增待办
   async addTodo({ title, content }) {
     const { app } = this;
-    const result = await app.mysql.insert('todo', { title, content });
+    const result = await app.mysql.insert('todo', { title, content, progress: progress || 0 });
     return result.insertId;
   }
 
   // 更新内容（标题和内容）
   async updateTodoContent({ id, title, content }) {
     const { app } = this;
-    const result = await app.mysql.update('todo', { title, content }, { where: { id } });
+    const result = await app.mysql.update('todo', { title, content, progress }, { where: { id } });
     return result.affectedRows;
   }
 
   // 更新状态
   async updateTodoStatus({ id, status }) {
     const { app } = this;
-    const result = await app.mysql.update('todo', { status }, { where: { id } });
+    // 状态为1（已完成）时自动设置进度为100
+    const updateData = { status };
+    if (status === 1) {
+      updateData.progress = 100;
+    } else {
+      updateData.progress = 0;
+    }
+    const result = await app.mysql.update('todo', updateData, { where: { id } });
     return result.affectedRows;
   }
 
