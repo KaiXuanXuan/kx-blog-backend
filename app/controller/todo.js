@@ -58,7 +58,7 @@ class TodoController extends Controller {
   // 6. 删除接口
   async delete() {
     const { ctx } = this;
-    const { id } = ctx.params;
+    const { id } = ctx.query;
     if (!id) ctx.throw(400, 'ID不能为空');
     const affectedRows = await ctx.service.todo.deleteTodo(id);
     ctx.body = { success: affectedRows > 0, message: affectedRows > 0 ? '待办删除成功' : '未找到对应待办' };

@@ -39,5 +39,6 @@ module.exports = (app) => {
   router.put('/api/todo/status', controller.todo.updateStatus);
   router.get('/api/todos', controller.todo.list);
   router.get('/api/todos/today', controller.todo.listToday);
-  router.delete('/api/todo/:id', controller.todo.delete);
+  router.delete('/api/todo/delete', controller.todo.delete);
+  router.post('/api/todo/agent', controller.todo.forwardToAgent);
 };
