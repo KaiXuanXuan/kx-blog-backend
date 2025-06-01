@@ -51,8 +51,19 @@ class TodoController extends Controller {
     const { ctx } = this;
     const { text } = ctx.request.body;
     if (!text) ctx.throw(400, '输入文本不能为空');
-    const result = await ctx.service.todo.forwardTextToAgent(text);
-    ctx.body = { success: true, data: result };
+
+    // 设置流式响应头
+    ctx.set('Content-Type', 'text/event-stream');
+    ctx.set('Cache-Control', 'no-cache');
+    ctx.set('Connection', 'keep-alive');
+
+    // 获取服务层流式数据
+    const stream = await ctx.service.todo.forwardTextToAgent(text);
+
+    // 管道流到响应
+    stream.on('data', chunk => ctx.res.write(`data: ${chunk}\n\n`));
+    stream.on('end', () => ctx.res.end('data: [DONE]\n\n'));
+    stream.on('error', err => ctx.res.end(`data: [ERROR] ${err.message}\n\n`));
   }
 
   // 6. 删除接口

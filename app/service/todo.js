@@ -1,6 +1,7 @@
 'use strict';
 
 const { Service } = require('egg');
+const { CozeAPI, COZE_COM_BASE_URL } = require('@coze/api');
 
 class TodoService extends Service {
   // 新增待办
@@ -35,10 +36,7 @@ class TodoService extends Service {
   async listTodos({ page, pageSize }) {
     const { app } = this;
     const offset = (page - 1) * pageSize;
-    const [todos, total] = await Promise.all([
-      app.mysql.select('todo', { order: [[ 'create_time', 'DESC' ]], limit: pageSize, offset }),
-      app.mysql.count('todo')
-    ]);
+    const [todos, total] = await Promise.all([app.mysql.select('todo', { order: [['create_time', 'DESC']], limit: pageSize, offset }), app.mysql.count('todo')]);
     return { list: todos, total };
   }
 
@@ -46,40 +44,54 @@ class TodoService extends Service {
   async listTodayTodos() {
     const { app } = this;
     const today = new Date().toISOString().split('T')[0];
-    return await app.mysql.query(
-      'SELECT * FROM todo WHERE DATE(create_time) = ? OR (status = 0 AND DATE(create_time) < ?)',
-      [today, today]
-    );
+    return await app.mysql.query('SELECT * FROM todo WHERE DATE(create_time) = ? OR (status = 0 AND DATE(create_time) < ?)', [today, today]);
   }
 
   // 转发文本到第三方agent
   async forwardTextToAgent(text) {
-    const { app } = this;
+    const { app, ctx } = this;
+    const userId = ctx.state.user.id;
+    
     // 1. 调用第一个接口获取SQL查询语句
-    const firstAgentUrl = app.config.thirdPartyAgentUrl;
-    const sqlResponse = await app.curl(firstAgentUrl, {
-      method: 'POST',
-      data: { text },
-      dataType: 'json',
-      contentType: 'json'
+    const client = new CozeAPI({
+      token: 'pat_gnvmwd14tgvHRwlSg688b9W6esrkQP3CfeANCD3Hjm1QVOAc5egMZU0go3dujqJi',
+      baseURL: COZE_COM_BASE_URL,
     });
-    if (sqlResponse.status !== 200) throw new Error('第一次第三方agent请求失败');
-    const sql = sqlResponse.data.sql;
+
+    const sqlAgentId = '7510471460104699942';
+    const reportAgentId = '7510471460104699942';
+
+    const sqlResponse = await client.chat.createAndPoll({
+      bot_id: sqlAgentId,
+      user_id: userId,
+      additional_messages: [
+        {
+          role: "user",
+          content: text,
+          content_type: 'text',
+          type: 'question',
+        },
+      ],
+    });
+    console.log('sqlResponse', sqlResponse.data);
+    const sql = sqlResponse.data.content;
+    console.log('完整SQL:', sql);
 
     // 2. 执行SQL查询数据库
     const queryResult = await app.mysql.query(sql);
+    console.log('queryResult', queryResult);
 
     // 3. 调用第二个接口发送查询结果
-    const secondAgentUrl = app.config.thirdPartyAgentResultUrl;
-    const resultResponse = await app.curl(secondAgentUrl, {
-      method: 'POST',
-      data: { result: queryResult },
-      dataType: 'json',
-      contentType: 'json'
+    return client.chat.stream({
+      bot_id: reportAgentId,
+      user_id: userId,
+      custom_variables: {
+        text: queryResult,
+      },
     });
-    if (resultResponse.status !== 200) throw new Error('第二次第三方agent请求失败');
+    // if (resultResponse.status !== 200) throw new Error('第二次第三方agent请求失败');
 
-    return resultResponse.data;
+    // return resultResponse.data;
   }
 
   // 删除待办
