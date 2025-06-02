@@ -1,7 +1,7 @@
 'use strict';
 
 const { Service } = require('egg');
-const { CozeAPI, COZE_COM_BASE_URL } = require('@coze/api');
+const { CozeAPI, COZE_CN_BASE_URL } = require('@coze/api');
 
 class TodoService extends Service {
   // 新增待办
@@ -51,47 +51,52 @@ class TodoService extends Service {
   async forwardTextToAgent(text) {
     const { app, ctx } = this;
     const userId = ctx.state.user.id;
-    
+
     // 1. 调用第一个接口获取SQL查询语句
     const client = new CozeAPI({
       token: 'pat_gnvmwd14tgvHRwlSg688b9W6esrkQP3CfeANCD3Hjm1QVOAc5egMZU0go3dujqJi',
-      baseURL: COZE_COM_BASE_URL,
+      baseURL: COZE_CN_BASE_URL,
     });
 
     const sqlAgentId = '7510471460104699942';
-    const reportAgentId = '7510471460104699942';
+    const reportAgentId = '7510470052987732005';
 
     const sqlResponse = await client.chat.createAndPoll({
       bot_id: sqlAgentId,
-      user_id: userId,
+      // user_id:'1',
       additional_messages: [
         {
-          role: "user",
+          role: 'user',
           content: text,
           content_type: 'text',
           type: 'question',
         },
       ],
     });
-    console.log('sqlResponse', sqlResponse.data);
-    const sql = sqlResponse.data.content;
-    console.log('完整SQL:', sql);
+    let sql = sqlResponse.messages[0].content;
+    // 清理Markdown代码块标记
+    sql = sql.replace(/^```sql\n/, '').replace(/\n```$/, '');
+    console.log('清理后SQL:', sql);
 
     // 2. 执行SQL查询数据库
     const queryResult = await app.mysql.query(sql);
-    console.log('queryResult', queryResult);
+    // console.log('queryResult', queryResult);
 
     // 3. 调用第二个接口发送查询结果
-    return client.chat.stream({
+    const stream = await client.chat.stream({
       bot_id: reportAgentId,
-      user_id: userId,
-      custom_variables: {
-        text: queryResult,
-      },
+      // user_id: userId,
+      additional_messages: [
+        {
+          role: 'user',
+          content: `以下是查询结果：${JSON.stringify(queryResult)}`,
+          content_type: 'text',
+          type: 'question',
+        },
+      ],
     });
-    // if (resultResponse.status !== 200) throw new Error('第二次第三方agent请求失败');
 
-    // return resultResponse.data;
+    return stream;
   }
 
   // 删除待办
