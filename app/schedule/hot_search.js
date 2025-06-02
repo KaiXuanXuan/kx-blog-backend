@@ -20,7 +20,7 @@ class HotSearchSchedule extends Subscription {
     // 查询是否已有该时间点数据
     const exists = await service.hotSearch.count(lastHour);
     if (!exists) {
-      ctx.logger.info(`检测到${lastHour}热搜数据缺失，开始爬取...`);
+      ctx.logger.info(`检测到${lastHour}点热搜数据缺失，开始爬取...`);
       // 调用爬虫服务
       const weiboData = await service.hotSearch.fetchWeiboHot();
       console.log('weiboData',weiboData);
