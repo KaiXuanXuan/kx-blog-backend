@@ -43,5 +43,5 @@ module.exports = (app) => {
   router.post('/api/todo/agent', controller.todo.forwardToAgent);
 
   // 最新热搜路由
-  router.get('/api/hotsearch/latest', controller.hotSearch.latest);
+  router.get('/api/hotSearch/latest', controller.hotSearch.latest);
 };

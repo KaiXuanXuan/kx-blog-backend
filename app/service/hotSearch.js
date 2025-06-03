@@ -33,14 +33,16 @@ class HotSearchService extends Service {
   // 根据更新时间查询数据
   async getByUpdateTime(updateTime) {
     const { mysql } = this.ctx.app;
-    const [rows] = await mysql.query('SELECT * FROM hot_search WHERE update_time = ?', [updateTime]);
+    console.log('查询时间:', updateTime);
+    const rows = await mysql.query('SELECT * FROM hot_search WHERE update_time = ?', [updateTime]);
+    console.log('查询结果:', rows);
     return rows;
   }
   // 检查某个 site 在指定时间点是否有数据
   async countBySite(updateTime, site) {
     const { mysql } = this.ctx.app;
-    const [result] = await mysql.query('SELECT COUNT(*) AS count FROM hot_search WHERE site = ? AND update_time = ?', [site, updateTime]);
-    return result.length > 0 ? result[0].count : 0;
+    const result = await mysql.query('SELECT COUNT(*) AS count FROM hot_search WHERE site = ? AND update_time = ?', [site, updateTime]);
+    return result[0]?.count || 0;
   }
   async fetchWeiboHot() {
     const { config } = this;
