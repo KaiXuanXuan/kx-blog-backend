@@ -117,7 +117,7 @@ module.exports = (appInfo) => {
 
   config.cors = {
     // 允许的源（必须为具体域名，不可用*）
-    origin: ['kaixx.top', 'www.kaixx.top', 'api.coze.cn'],
+    origin: ['kaixx.top', 'www.kaixx.top', 'api.coze.cn', 'localhost:5175'],
     // 允许的HTTP方法
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
     // 允许的请求头（如需要前端传自定义头，需在此声明）
