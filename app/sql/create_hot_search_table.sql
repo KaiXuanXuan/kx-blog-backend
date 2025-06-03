@@ -8,5 +8,5 @@ CREATE TABLE IF NOT EXISTS hot_search (
   update_time DATETIME NOT NULL COMMENT '更新时间（存储整点时间）',
   create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
   PRIMARY KEY (id),
-  UNIQUE KEY uk_site_title_update (site, title, update_time)
+  UNIQUE KEY uk_site_rank_update (site, `rank`, update_time)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '热搜榜数据表';

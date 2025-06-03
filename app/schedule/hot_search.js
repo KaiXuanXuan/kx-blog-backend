@@ -2,6 +2,7 @@
 
 const Subscription = require('egg').Subscription;
 const dayjs = require('dayjs');
+const axios = require('axios');
 
 class HotSearchSchedule extends Subscription {
   static get schedule() {
@@ -16,27 +17,31 @@ class HotSearchSchedule extends Subscription {
     const { ctx, service } = this;
     // 计算上个整点时间（如当前10:25，上个整点是10:00；当前10:40，上个整点是10:00）
     // 修改后（年月日时格式）
-    const lastHour = dayjs().format('YYYY-MM-DD HH'); // 输出如 '2024-05-20 10'
-    // 查询是否已有该时间点数据
-    const exists = await service.hotSearch.count(lastHour);
-    if (!exists) {
-      ctx.logger.info(`检测到${lastHour}点热搜数据缺失，开始爬取...`);
-      // 调用爬虫服务
-      const weiboData = await service.hotSearch.fetchWeiboHot();
-      console.log('weiboData',weiboData);
+    const lastHour = dayjs().format('YYYY-MM-DD HH:00:00'); // 输出如 '2024-05-20 10'
 
-      const juejinData = await service.hotSearch.fetchJuejinHot();
-      console.log('juejinData',juejinData);
-      
-      // 合并数据并插入数据库
-      const allData = [...weiboData, ...juejinData].map((item) => ({
-        ...item,
-        update_time: lastHour,
-      }));
-      for (const data of allData) {
-        await service.hotSearch.insert(data);
+    const siteMap = {
+      '微博': 'fetchWeiboHot',
+      '百度': 'fetchBaiduHot',
+      'B站': 'fetchBilibiliHot',
+    };
+
+    for (const site of Object.keys(siteMap)) {
+      const count = await service.hotSearch.countBySite(lastHour, site);
+      if (count === 0) {
+        console.log(`检测到${lastHour}点${site}热搜数据缺失，开始爬取...`);
+        // 用映射表找到对应的方法名
+        const methodName = siteMap[site];
+        if (typeof service.hotSearch[methodName] === 'function') {
+          const data = await service.hotSearch[methodName]();
+          for (const item of data) {
+            await service.hotSearch.insert({
+              ...item,
+              update_time: lastHour, // lastHour 是你定时任务计算出来的时间
+            });
+          }
+          console.log(`成功插入${data.length}条${site}热搜数据`);
+        }
       }
-      ctx.logger.info(`成功插入${allData.length}条热搜数据`);
     }
   }
 }
