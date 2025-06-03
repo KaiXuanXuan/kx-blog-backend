@@ -41,4 +41,7 @@ module.exports = (app) => {
   router.get('/api/todos/today', controller.todo.listToday);
   router.delete('/api/todo/delete', controller.todo.delete);
   router.post('/api/todo/agent', controller.todo.forwardToAgent);
+
+  // 最新热搜路由
+  router.get('/api/hotsearch/latest', controller.hotSearch.latest);
 };
