@@ -24,24 +24,24 @@ class HotSearchService extends Service {
         data.heat,
         data.update_time,
       ]);
+      console.log(`成功插入数据: ${data.site} 第${data.rank}名 "${data.title}"`);
       return result;
     } else {
-      // 已存在则直接返回 null 或自定义信息
+      console.log(`数据已存在，跳过: ${data.site} 第${data.rank}名 "${data.title}"`);
       return null;
     }
   }
   // 根据更新时间查询数据
   async getByUpdateTime(updateTime) {
     const { mysql } = this.ctx.app;
-    console.log('查询时间:', updateTime);
     const rows = await mysql.query('SELECT * FROM hot_search WHERE update_time = ?', [updateTime]);
-    console.log('查询结果:', rows);
     return rows;
   }
   // 检查某个 site 在指定时间点是否有数据
   async countBySite(updateTime, site) {
     const { mysql } = this.ctx.app;
     const result = await mysql.query('SELECT COUNT(*) AS count FROM hot_search WHERE site = ? AND update_time = ?', [site, updateTime]);
+    console.log(site, '更新时间:', updateTime, '数据数量:', result[0]?.count || 0);
     return result[0]?.count || 0;
   }
   async fetchWeiboHot() {
@@ -67,7 +67,7 @@ class HotSearchService extends Service {
       // 跳过表头
       if (index === 0) return;
       const $tds = $(this).find('td');
-      const rank = parseInt($tds.eq(0).text().trim()) || index;
+      const rank = index;
       const $a = $tds.eq(1).find('a');
       const url = weiboURL + $a.attr('href');
       const title = $a.text().trim();
@@ -81,6 +81,7 @@ class HotSearchService extends Service {
       });
     });
 
+    console.log(`微博热搜爬取到 ${hotList.length} 条数据`);
     return hotList.slice(0, 20);
   }
 
@@ -95,7 +96,7 @@ class HotSearchService extends Service {
 
     const hotList = [];
     $('.row-start-center.zkwvwdF0VfxBzs7BSEZ1A').each(function (idx) {
-      const rank = $(this).find('._1DHjV0lKKB9gt0NdIKD2iH').text().trim();
+      const rank = idx + 1;
       const title = $(this).find('._38vEKmzrdqNxu0Z5xPExcg').text().trim();
       // 热度
       const heat = $(this).find('._2h7pZ6t1gkQpM5pU5Y1jUO').text().trim() || '';
@@ -109,6 +110,8 @@ class HotSearchService extends Service {
         site: '百度',
       });
     });
+
+    console.log(`百度热搜爬取到 ${hotList.length} 条数据`);
     return hotList.slice(0, 20);
   }
 
@@ -133,6 +136,8 @@ class HotSearchService extends Service {
         site: 'B站',
       });
     });
+
+    console.log(`B站热搜爬取到 ${hotList.length} 条数据`);
     return hotList.slice(0, 20);
   }
 }

@@ -39,7 +39,6 @@ class HotSearchSchedule extends Subscription {
               update_time: lastHour, // lastHour 是你定时任务计算出来的时间
             });
           }
-          console.log(`成功插入${data.length}条${site}热搜数据`);
         }
       }
     }
