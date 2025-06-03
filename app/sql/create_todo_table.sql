@@ -1,6 +1,7 @@
 -- 创建每日代办表
 CREATE TABLE IF NOT EXISTS todo (
   id INT UNSIGNED AUTO_INCREMENT COMMENT '待办ID',
+  user_id INT UNSIGNED NOT NULL COMMENT '用户ID',
   title VARCHAR(100) NOT NULL COMMENT '待办标题',
   content TEXT COMMENT '待办内容',
   status TINYINT UNSIGNED DEFAULT 0 COMMENT '完成状态（0:未完成 1:已完成）',

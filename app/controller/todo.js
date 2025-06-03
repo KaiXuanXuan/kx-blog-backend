@@ -67,7 +67,6 @@ class TodoController extends Controller {
     for await (const chunk of stream) {
       const sseChunk = `data: ${JSON.stringify(chunk)}\n\n`; // SSE格式
       ctx.res.write(sseChunk);
-      console.log(sseChunk);
     }
     console.log('数据流推送完成');
     ctx.res.end()
