@@ -39,7 +39,7 @@ module.exports = (appInfo) => {
   // 可选：配置中间件作用范围（如排除登录接口）
   config.auth = {
     enable: true,
-    match: (ctx) => !['/api/user/login', '/api/user/register', '/api/blog/list', '/api/blog/detail', '/api/resource/items', '/api/resource/categories'].includes(ctx.path),
+    match: (ctx) => !['/api/user/login', '/api/user/register', '/api/blog/list', '/api/blog/detail', '/api/resource/items', '/api/resource/categories', '/api/hotSearch/latest'].includes(ctx.path),
   };
   config.permission = {
     enable: true,
@@ -115,16 +115,19 @@ module.exports = (appInfo) => {
     expiresIn: '7d', // Token 过期时间（7天）
   };
 
+  const allowOrigins = ['https://kaixx.top', 'https://www.kaixx.top', 'https://api.coze.cn', 'http://localhost:5175'];
+
   config.cors = {
-    // 允许的源（必须为具体域名，不可用*）
-    origin: ['kaixx.top', 'www.kaixx.top', 'api.coze.cn', 'localhost:5175'],
-    // 允许的HTTP方法
+    origin: (ctx) => {
+      const requestOrigin = ctx.get('origin');
+      if (allowOrigins.includes(requestOrigin)) {
+        return requestOrigin;
+      }
+      return ''; // 或者 return false;
+    },
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
-    // 允许的请求头（如需要前端传自定义头，需在此声明）
     allowHeaders: 'Content-Type,Authorization,X-CSRF-Token',
-    // 允许前端获取的响应头（可选）
     exposeHeaders: '',
-    // 是否允许携带Cookie（若前端需传Cookie，设为true）
     credentials: true,
   };
 
