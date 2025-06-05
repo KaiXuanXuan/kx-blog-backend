@@ -119,6 +119,11 @@ class ResourceService extends Service {
     // 转换Map为数组返回
     return Array.from(treeMap.values());
   }
+
+  async getItemById(id) {
+    const { app } = this;
+    return await app.mysql.get('resource_item', { id });
+  }
 }
 
 module.exports = ResourceService;

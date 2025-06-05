@@ -100,9 +100,19 @@ class ResourceController extends Controller {
   // 更新资源条目
   async updateItem() {
     const { ctx, service } = this;
-    const { id, title, icon: oldIcon, item_desc, item_url } = JSON.parse(ctx.request.body.data);
-    let icon = oldIcon;
+    const { id, title, item_desc, item_url } = JSON.parse(ctx.request.body.data);
+    let icon;
     const iconsDir = this.config.multipart.iconsDir || path.join(this.config.baseDir, 'app/public/icons');
+
+    // 查数据库获取旧icon
+    const oldItem = await service.resource.getItemById(id);
+    if (!oldItem || !oldItem.icon) {
+      ctx.status = 404;
+      return (ctx.body = { code: 404, message: '未找到原有图片，无法更新' });
+    }
+    let oldIcon = oldItem.icon;
+    icon = oldIcon;
+
     // 检查是否有新文件上传
     if (ctx.request.files && ctx.request.files.length > 0) {
       try {
@@ -121,6 +131,7 @@ class ResourceController extends Controller {
         return (ctx.body = { code: 400, message: e.message });
       }
     }
+
     if (!id || !title || !item_url) {
       ctx.status = 400;
       return (ctx.body = { code: 400, message: '条目ID、标题、链接为必填参数' });
@@ -140,6 +151,15 @@ class ResourceController extends Controller {
     if (!id) {
       ctx.status = 400;
       return (ctx.body = { code: 400, message: '条目ID为必填参数' });
+    }
+    // 查数据库获取 icon 路径
+    const oldItem = await service.resource.getItemById(id);
+    if (oldItem && oldItem.icon && oldItem.icon.startsWith('/icons/')) {
+      const iconsDir = this.config.multipart.iconsDir || path.join(this.config.baseDir, 'app/public/icons');
+      const oldPath = path.join(iconsDir, path.basename(oldItem.icon));
+      if (fs.existsSync(oldPath)) {
+        await fs.promises.unlink(oldPath);
+      }
     }
     const result = await service.resource.deleteItem(id);
     if (result === 0) {
