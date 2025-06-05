@@ -26,31 +26,36 @@ class ResourceController extends Controller {
     ctx.body = { code: 200, message: '获取分类列表成功', data: categories };
   }
 
-  // 添加资源条目
-  async addItem() {
-    const { ctx, service } = this;
-    const { category_id, title, item_desc, item_url } = JSON.parse(ctx.request.body.data);
-    
-    const file = ctx.request.files[0];
+  // 工具函数：处理 file 对象并保存图片，返回 icon 路径
+  async _saveIconFile(file, iconsDir) {
     const base64String = await fs.promises.readFile(file.filepath, 'utf8');
     const matches = base64String.match(/^data:image\/(\w+);base64,(.*)$/);
     if (!matches || matches.length !== 3) {
-      ctx.status = 400;
-      return (ctx.body = { code: 400, message: '无效的图片格式' });
+      throw new Error('无效的图片格式');
     }
     const fileType = matches[1];
     const base64Data = matches[2];
     const buffer = Buffer.from(base64Data, 'base64');
-    const iconsDir = this.config.multipart.iconsDir || path.join(this.config.baseDir, 'app/public/icons');
     const fileName = `icon_${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileType}`;
     const filePath = path.join(iconsDir, fileName);
-
-    // 确保图标目录存在（递归创建）
     await fs.promises.mkdir(iconsDir, { recursive: true });
-
-    const icon = `/icons/${fileName}`;
     await fs.promises.writeFile(filePath, buffer);
+    return `/icons/${fileName}`;
+  }
 
+  // 添加资源条目
+  async addItem() {
+    const { ctx, service } = this;
+    const { category_id, title, item_desc, item_url } = JSON.parse(ctx.request.body.data);
+    const file = ctx.request.files[0];
+    const iconsDir = this.config.multipart.iconsDir || path.join(this.config.baseDir, 'app/public/icons');
+    let icon;
+    try {
+      icon = await this._saveIconFile(file, iconsDir);
+    } catch (e) {
+      ctx.status = 400;
+      return (ctx.body = { code: 400, message: e.message });
+    }
     if (!category_id || !title || !item_url) {
       ctx.status = 400;
       return (ctx.body = { code: 400, message: '分类ID、标题、链接为必填参数' });
@@ -95,7 +100,27 @@ class ResourceController extends Controller {
   // 更新资源条目
   async updateItem() {
     const { ctx, service } = this;
-    const { id, title, icon, item_desc, item_url } = ctx.request.body;
+    const { id, title, icon: oldIcon, item_desc, item_url } = JSON.parse(ctx.request.body.data);
+    let icon = oldIcon;
+    const iconsDir = this.config.multipart.iconsDir || path.join(this.config.baseDir, 'app/public/icons');
+    // 检查是否有新文件上传
+    if (ctx.request.files && ctx.request.files.length > 0) {
+      try {
+        const file = ctx.request.files[0];
+        // 保存新图片
+        icon = await this._saveIconFile(file, iconsDir);
+        // 删除老图片
+        if (oldIcon && oldIcon.startsWith('/icons/')) {
+          const oldPath = path.join(iconsDir, path.basename(oldIcon));
+          if (fs.existsSync(oldPath)) {
+            await fs.promises.unlink(oldPath);
+          }
+        }
+      } catch (e) {
+        ctx.status = 400;
+        return (ctx.body = { code: 400, message: e.message });
+      }
+    }
     if (!id || !title || !item_url) {
       ctx.status = 400;
       return (ctx.body = { code: 400, message: '条目ID、标题、链接为必填参数' });
