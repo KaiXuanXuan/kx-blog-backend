@@ -131,6 +131,23 @@ module.exports = (appInfo) => {
     credentials: true,
   };
 
+  config.session = {
+    sameSite: 'none',
+    secure: true,
+  };
+
+  config.security = {
+    csrf: {
+      enable: true,
+      ignore: ctx => {
+        // 允许来源为 https://kaixx.top/ 的请求跳过 CSRF 校验
+        const origin = ctx.get('origin');
+        const referer = ctx.get('referer');
+        return origin === 'https://kaixx.top' || (referer && referer.startsWith('https://kaixx.top/'));
+      },
+    },
+  };
+
   return {
     ...config,
     ...userConfig,
