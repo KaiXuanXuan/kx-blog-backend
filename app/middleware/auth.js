@@ -4,7 +4,7 @@ module.exports = (options, app) => {
     const authHeader = ctx.get('Authorization'); // 获取完整 Authorization 头
     if (!authHeader) {
       ctx.status = 401;
-      return (ctx.body = { code: 401, message: '请先登录' });
+      return (ctx.body = { code: 401, message: '请先登录', csrfToken: ctx.csrf, });
     }
 
     // 分割 Bearer 和 Token
