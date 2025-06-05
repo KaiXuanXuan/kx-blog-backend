@@ -1,5 +1,6 @@
 'use strict';
 const fse = require('fs-extra');
+const moment = require('moment');
 
 module.exports = {
   /**
@@ -11,9 +12,12 @@ module.exports = {
   async moveFile(sourcePath, targetPath) {
     // 使用 fs-extra 的 move 方法（自动处理跨分区）
     await fse.move(sourcePath, targetPath, { overwrite: true });
+  },
+  // 新增时间格式化方法（返回YYYY-MM-DD HH:mm:ss格式）
+  formatTime(time) {
+    return moment(time).format('YYYY-MM-DD HH:mm:ss');
+  },
+  relativeTime(time) {
+    return moment(new Date(time * 1000)).fromNow();
   }
 };
-const moment = require('moment');
-// 新增时间格式化方法（返回YYYY-MM-DD HH:mm:ss格式）
-exports.formatTime = (time) => moment(time).format('YYYY-MM-DD HH:mm:ss');
-exports.relativeTime = (time) => moment(new Date(time * 1000)).fromNow();
