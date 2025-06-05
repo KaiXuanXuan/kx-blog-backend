@@ -5,7 +5,8 @@ class HomeController extends Controller {
     const { ctx } = this;
     ctx.body = {
       code: 200,
-      message: '欢迎回来~'
+      message: '欢迎回来~',
+      csrfToken: ctx.csrf,
     };
   }
 }
