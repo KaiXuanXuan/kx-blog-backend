@@ -4,7 +4,7 @@ module.exports = (options, app) => {
     const authHeader = ctx.get('Authorization'); // 获取完整 Authorization 头
     if (!authHeader) {
       ctx.status = 401;
-      return (ctx.body = { code: 401, message: '请先登录', csrfToken: ctx.csrf, });
+      return (ctx.body = { code: 401, message: '请先登录', csrfToken: ctx.csrf });
     }
 
     // 分割 Bearer 和 Token
@@ -22,7 +22,7 @@ module.exports = (options, app) => {
       ctx.state.user = decoded; // 将用户信息挂载到 ctx.state
     } catch (err) {
       ctx.status = 401;
-      return ctx.body = { code: 401, message: '无效的 Token 或已过期 ' + err };
+      return (ctx.body = { code: 401, message: '无效的 Token 或已过期 ' + err });
     }
     await next();
   };
