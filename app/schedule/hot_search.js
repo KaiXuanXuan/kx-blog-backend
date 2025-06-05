@@ -7,7 +7,7 @@ const axios = require('axios');
 class HotSearchSchedule extends Subscription {
   static get schedule() {
     return {
-      interval: '30m', // 每30分钟执行
+      interval: '20m', // 每20分钟执行一次查询
       type: 'worker', // 仅一个worker执行
       immediate: true, // 启动时立即执行
     };
