@@ -100,7 +100,8 @@ class ResourceController extends Controller {
   // 更新资源条目
   async updateItem() {
     const { ctx, service } = this;
-    const { id, title, item_desc, item_url } = JSON.parse(ctx.request.body.data);
+    const { id, title, item_desc, item_url, category_id } = JSON.parse(ctx.request.body.data);
+    console.log(ctx.request.body.data);
     let icon;
     const iconsDir = this.config.multipart.iconsDir || path.join(this.config.baseDir, 'app/public/icons');
 
@@ -136,7 +137,7 @@ class ResourceController extends Controller {
       ctx.status = 400;
       return (ctx.body = { code: 400, message: '条目ID、标题、链接为必填参数' });
     }
-    const result = await service.resource.updateItem({ id, title, icon, item_desc, item_url });
+    const result = await service.resource.updateItem({ id, title, icon, item_desc, item_url, category_id });
     if (result === 0) {
       ctx.status = 404;
       return (ctx.body = { code: 404, message: '条目不存在' });
