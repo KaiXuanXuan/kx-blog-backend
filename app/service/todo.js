@@ -8,7 +8,9 @@ class TodoService extends Service {
   async addTodo({ title, content, progress }) {
     const { app, ctx } = this;
     const user_id = ctx.state.user.id;
-    const result = await app.mysql.insert('todo', { title, content, progress, user_id });
+    let status = 0;
+    if ( progress == 100 ) status = 1;
+    const result = await app.mysql.insert('todo', { title, content, progress, user_id, status });
     return result.insertId;
   }
 
