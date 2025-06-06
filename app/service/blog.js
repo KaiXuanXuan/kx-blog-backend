@@ -55,12 +55,6 @@ class BlogService extends Service {
   // 删除博客（含事务处理）
   async delete(id) {
     const { app } = this;
-    const userId = this.ctx.state.user.id;
-    const user = await service.user.getUserById(userId);
-    if (!user || !user.is_admin) {
-      ctx.status = 403;
-      return (ctx.body = { code: 403, message: '无权限操作' });
-    }
     const blgSql = 'SELECT * FROM blog WHERE id =?';
     const [blog] = await app.mysql.query(blgSql, [id]);
     if (!blog) return null;

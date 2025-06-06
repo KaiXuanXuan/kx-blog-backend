@@ -130,17 +130,6 @@ class BlogController extends Controller {
   // 删除博客
   async delete() {
     const { ctx, service } = this;
-    // 从数据库查询用户最新权限
-    const { id: userId } = ctx.state.user;
-    if (!userId) {
-      ctx.status = 401;
-      return (ctx.body = { code: 401, message: '无效的用户信息' });
-    }
-    const user = await service.user.getUserById(userId);
-    if (!user || !user.is_admin) {
-      ctx.status = 403;
-      return (ctx.body = { code: 403, message: '无权限，仅管理员可删除' });
-    }
     // 获取博客id参数
     const { id } = ctx.request.body;
     if (!id) {
