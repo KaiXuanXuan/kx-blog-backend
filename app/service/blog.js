@@ -1,6 +1,8 @@
 'use strict';
 
 const { Service } = require('egg');
+const path = require('path');
+const fs = require('fs');
 
 class BlogService extends Service {
   // 创建博客（含事务处理）
@@ -55,9 +57,23 @@ class BlogService extends Service {
   // 删除博客（含事务处理）
   async delete(id) {
     const { app } = this;
+    // 查询博客详情，获取cover_image
     const blgSql = 'SELECT * FROM blog WHERE id =?';
     const [blog] = await app.mysql.query(blgSql, [id]);
     if (!blog) return null;
+    // 删除封面图片文件（如有）
+    if (blog.cover_image && blog.cover_image.startsWith('/images/')) {
+      const uploadDir = app.config.multipart.uploadDir || path.join(app.baseDir, 'app/public/images');
+      const filePath = path.join(uploadDir, path.basename(blog.cover_image));
+      if (fs.existsSync(filePath)) {
+        try {
+          await fs.promises.unlink(filePath);
+        } catch (e) {
+          // 可以选择记录日志，但不影响主流程
+          app.logger.warn('删除博客封面图片失败:', e);
+        }
+      }
+    }
     // 执行删除操作
     const result = await app.mysql.delete('blog', { id });
     return result;

@@ -1,6 +1,8 @@
 'use strict';
 
 const { Service } = require('egg');
+const path = require('path');
+const fs = require('fs');
 
 class ResourceService extends Service {
   // 添加资源分类
@@ -51,6 +53,19 @@ class ResourceService extends Service {
   // 删除资源条目
   async deleteItem(id) {
     const { app } = this;
+    // 查数据库获取 icon 路径
+    const oldItem = await this.getItemById(id);
+    if (oldItem && oldItem.icon && oldItem.icon.startsWith('/icons/')) {
+      const iconsDir = app.config.multipart.iconsDir || path.join(app.baseDir, 'app/public/icons');
+      const oldPath = path.join(iconsDir, path.basename(oldItem.icon));
+      if (fs.existsSync(oldPath)) {
+        try {
+          await fs.promises.unlink(oldPath);
+        } catch (e) {
+          app.logger.warn('删除资源条目图片失败:', e);
+        }
+      }
+    }
     const result = await app.mysql.delete('resource_item', { id });
     return result.affectedRows;
   }

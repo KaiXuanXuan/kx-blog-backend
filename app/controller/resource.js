@@ -153,15 +153,6 @@ class ResourceController extends Controller {
       ctx.status = 400;
       return (ctx.body = { code: 400, message: '条目ID为必填参数' });
     }
-    // 查数据库获取 icon 路径
-    const oldItem = await service.resource.getItemById(id);
-    if (oldItem && oldItem.icon && oldItem.icon.startsWith('/icons/')) {
-      const iconsDir = this.config.multipart.iconsDir || path.join(this.config.baseDir, 'app/public/icons');
-      const oldPath = path.join(iconsDir, path.basename(oldItem.icon));
-      if (fs.existsSync(oldPath)) {
-        await fs.promises.unlink(oldPath);
-      }
-    }
     const result = await service.resource.deleteItem(id);
     if (result === 0) {
       ctx.status = 404;
