@@ -6,6 +6,9 @@ module.exports = (app) => {
   router.get('/api', controller.home.index);
   router.get('/api/news', controller.news.list);
 
+  // vtb路由
+  router.get('/api/vtb/info', controller.vtb.info);
+
   // 资源分类路由
   router.post('/api/resource/category/add', controller.resource.addCategory);
   router.get('/api/resource/categories', controller.resource.listCategories);
