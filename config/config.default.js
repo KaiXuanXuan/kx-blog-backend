@@ -57,6 +57,13 @@ module.exports = (appInfo) => {
       ].includes(ctx.path),
   };
 
+  // 热搜爬虫配置
+  config.siteMap = {
+    '微博': 'fetchWeiboHot',
+    '百度': 'fetchBaiduHot',
+    'B站': 'fetchBilibiliHot',
+  }
+
   // 模板引擎
   config.view = {
     defaultViewEngine: 'nunjucks',

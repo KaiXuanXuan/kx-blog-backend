@@ -19,11 +19,7 @@ class HotSearchSchedule extends Subscription {
     // 修改后（年月日时格式）
     const lastHour = dayjs().format('YYYY-MM-DD HH:00:00'); // 输出如 '2024-05-20 10'
 
-    const siteMap = {
-      '微博': 'fetchWeiboHot',
-      '百度': 'fetchBaiduHot',
-      'B站': 'fetchBilibiliHot',
-    };
+    const siteMap = this.config.siteMap;
 
     for (const site of Object.keys(siteMap)) {
       const count = await service.hotSearch.countBySite(lastHour, site);
