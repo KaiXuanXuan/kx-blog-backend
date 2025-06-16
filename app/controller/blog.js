@@ -89,6 +89,53 @@ class BlogController extends Controller {
     ctx.body = { code: 200, message:'获取列表成功' ,data: formattedBlogList };
   }
 
+  // 分页获取博客列表
+  async page() {
+    const { ctx, service } = this;
+    
+    // 获取分页参数
+    const { page = 1, pageSize = 10 } = ctx.query;
+    
+    // 参数验证
+    const pageNum = parseInt(page);
+    const pageSizeNum = parseInt(pageSize);
+    
+    if (isNaN(pageNum) || pageNum < 1) {
+      ctx.status = 400;
+      return (ctx.body = { code: 400, message: '页码参数无效' });
+    }
+    
+    if (isNaN(pageSizeNum) || pageSizeNum < 1 || pageSizeNum > 100) {
+      ctx.status = 400;
+      return (ctx.body = { code: 400, message: '每页数量参数无效（范围1-100）' });
+    }
+    
+    try {
+      const result = await service.blog.page({ page: pageNum, pageSize: pageSizeNum });
+      
+      // 为封面图片添加完整后端地址
+      const formattedList = result.list.map((blog) => ({
+        ...blog,
+        cover_image: `${ctx.origin}${blog.cover_image}`,
+      }));
+      
+      ctx.body = {
+        code: 200,
+        message: '获取分页数据成功',
+        data: {
+          list: formattedList,
+          current: result.pagination.current,
+          pages: result.pagination.pages,
+          total: result.pagination.total,
+          pageSize: result.pagination.pageSize
+        }
+      };
+    } catch (error) {
+      ctx.status = 500;
+      ctx.body = { code: 500, message: '获取分页数据失败' };
+    }
+  }
+
   // 更新博客
   async update() {
     const { ctx, service } = this;

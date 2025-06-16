@@ -31,6 +31,7 @@ module.exports = (app) => {
 
   // 博客路由
   router.get('/api/blog/list', controller.blog.list);
+  router.get('/api/blog/page', controller.blog.page);
   router.get('/api/blog/detail', controller.blog.detail);
   router.post('/api/blog/add', controller.blog.add);
   router.post('/api/blog/update', controller.blog.update);

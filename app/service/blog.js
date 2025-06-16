@@ -30,6 +30,40 @@ class BlogService extends Service {
     return result;
   }
 
+  // 分页获取博客列表
+  async page({ page = 1, pageSize = 10 } = {}) {
+    const { app } = this;
+    
+    // 计算偏移量
+    const offset = (page - 1) * pageSize;
+    
+    // 查询总数量
+    const countSql = 'SELECT COUNT(*) as total FROM blog';
+    const [{ total }] = await app.mysql.query(countSql);
+    
+    // 查询当前页数据
+    const dataSql = `
+      SELECT id, title, author, category, create_time, update_time, cover_image
+      FROM blog
+      ORDER BY create_time DESC
+      LIMIT ? OFFSET ?
+    `;
+    const result = await app.mysql.query(dataSql, [pageSize, offset]);
+    
+    // 计算总页数
+    const pages = Math.ceil(total / pageSize);
+    
+    return {
+      list: result,
+      pagination: {
+        current: page,
+        pages,
+        total,
+        pageSize
+      }
+    };
+  }
+
   // 更新博客（含更新时间）
   async update({ id, title, markdown_content, category, cover_image }) {
     const { app } = this;
