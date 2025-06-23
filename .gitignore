@@ -13,4 +13,6 @@ run/
 *.un~
 typings/
 .nyc_output/
-/public
+
+# 忽略静态资源文件
+app/public/

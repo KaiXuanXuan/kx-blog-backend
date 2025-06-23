@@ -39,7 +39,10 @@ module.exports = (appInfo) => {
   // 可选：配置中间件作用范围（如排除登录接口）
   config.auth = {
     enable: true,
-    match: (ctx) => !['/api/user/login', '/api/user/register', '/api/blog/list', '/api/blog/detail', '/api/resource/items', '/api/resource/categories', '/api/hotSearch/latest'].includes(ctx.path),
+    match: (ctx) =>
+      !['/api/user/login', '/api/user/register', '/api/blog/list', '/api/blog/detail', '/api/resource/search', '/api/resource/items', '/api/resource/categories', '/api/hotSearch/latest'].includes(
+        ctx.path
+      ),
   };
   config.permission = {
     enable: true,
@@ -59,10 +62,10 @@ module.exports = (appInfo) => {
 
   // 热搜爬虫配置
   config.siteMap = {
-    '微博': 'fetchWeiboHot',
-    '百度': 'fetchBaiduHot',
-    'B站': 'fetchBilibiliHot',
-  }
+    微博: 'fetchWeiboHot',
+    百度: 'fetchBaiduHot',
+    B站: 'fetchBilibiliHot',
+  };
 
   // 模板引擎
   config.view = {
@@ -146,7 +149,7 @@ module.exports = (appInfo) => {
   config.security = {
     csrf: {
       enable: true,
-      ignore: ctx => {
+      ignore: (ctx) => {
         // 允许来源为 https://kaixx.top/ 的请求跳过 CSRF 校验
         const origin = ctx.get('origin');
         const referer = ctx.get('referer');
