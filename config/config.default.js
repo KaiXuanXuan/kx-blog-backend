@@ -40,9 +40,17 @@ module.exports = (appInfo) => {
   config.auth = {
     enable: true,
     match: (ctx) =>
-      !['/api/user/login', '/api/user/register', '/api/blog/list', '/api/blog/detail', '/api/resource/search', '/api/resource/items', '/api/resource/categories', '/api/hotSearch/latest'].includes(
-        ctx.path
-      ),
+      ![
+        '/api/user/login',
+        '/api/user/register',
+        '/api/blog/page',
+        '/api/blog/list',
+        '/api/blog/detail',
+        '/api/resource/search',
+        '/api/resource/items',
+        '/api/resource/categories',
+        '/api/hotSearch/latest',
+      ].includes(ctx.path),
   };
   config.permission = {
     enable: true,
