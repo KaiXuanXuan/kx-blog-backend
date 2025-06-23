@@ -5,6 +5,28 @@ const path = require('path');
 const fs = require('fs');
 
 class BlogController extends Controller {
+  // 私有方法：解析图片文件为cover_image路径
+  async _parseCoverImage(file) {
+    const { ctx } = this;
+    if (!file) return null;
+    const base64String = await fs.promises.readFile(file.filepath, 'utf8');
+    const matches = base64String.match(/^data:image\/(\w+);base64,(.*)$/);
+    if (!matches || matches.length !== 3) {
+      ctx.status = 400;
+      ctx.body = { code: 400, message: '无效的图片格式' };
+      return null;
+    }
+    const fileType = matches[1];
+    const base64Data = matches[2];
+    const buffer = Buffer.from(base64Data, 'base64');
+    const uploadDir = this.config.multipart.uploadDir || path.join(this.config.baseDir, 'app/public/images');
+    const fileName = `blog_${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileType}`;
+    const filePath = path.join(uploadDir, fileName);
+    await fs.promises.mkdir(uploadDir, { recursive: true });
+    await fs.promises.writeFile(filePath, buffer);
+    return `/images/${fileName}`;
+  }
+
   // 创建博客
   async add() {
     const { ctx, service } = this;
@@ -25,25 +47,7 @@ class BlogController extends Controller {
     // 解析base64编码的图片
     let cover_image = '';
 
-    const base64String = await fs.promises.readFile(file.filepath, 'utf8');
-    const matches = base64String.match(/^data:image\/(\w+);base64,(.*)$/);
-    if (!matches || matches.length !== 3) {
-      ctx.status = 400;
-      return (ctx.body = { code: 400, message: '无效的图片格式' });
-    }
-    const fileType = matches[1];
-    const base64Data = matches[2];
-    const buffer = Buffer.from(base64Data, 'base64');
-
-    // 生成唯一文件名（时间戳+原文件名）
-    const uploadDir = this.config.multipart.uploadDir || path.join(this.config.baseDir, 'app/public/images');
-    const fileName = `blog_${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileType}`;
-    const filePath = path.join(uploadDir, fileName);
-
-    // 数据库存储相对路径（public/images/文件名）
-    await fs.promises.mkdir(uploadDir, { recursive: true });
-    cover_image = `/images/${fileName}`;
-    await fs.promises.writeFile(filePath, buffer);
+    cover_image = await this._parseCoverImage(file);
 
     // 从FormData中获取JSON数据字段
     const dataStr = ctx.request.body.data;
@@ -140,7 +144,8 @@ class BlogController extends Controller {
   async update() {
     const { ctx, service } = this;
     // 获取前端参数（id和更新内容）
-    const cover_image = ctx.request.files[0];
+    const files = ctx.request.files;
+    const file = files && files.length > 0 ? files[0] : null;
     const data = JSON.parse(ctx.request.body.data);
     const { id, title, markdown_content, category } = data;
     // 参数校验
@@ -164,6 +169,11 @@ class BlogController extends Controller {
     if (blog.author !== username) {
       ctx.status = 403;
       return (ctx.body = { code: 403, message: '无权限修改，仅作者可操作' });
+    }
+    // 解析图片（如有）
+    let cover_image = null;
+    if (file) {
+      cover_image = await this._parseCoverImage(file);
     }
     // 调用服务层更新
     const result = await service.blog.update({ id, title, markdown_content, category, cover_image });

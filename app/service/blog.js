@@ -69,18 +69,22 @@ class BlogService extends Service {
     const { app } = this;
     // 获取当前时间戳
     const update_time = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    // 构建更新字段
+    const updateFields = {
+      title,
+      markdown_content,
+      category,
+      update_time,
+    };
+    if (cover_image) {
+      updateFields.cover_image = cover_image;
+    }
     // 开启事务（如需更新关联的封面图）
     const conn = await app.mysql.beginTransactionScope(async (conn) => {
       // 更新博客主表
       await conn.update(
         'blog',
-        {
-          title,
-          markdown_content,
-          category,
-          update_time,
-          cover_image,
-        },
+        updateFields,
         { where: { id } }
       );
       return id;
