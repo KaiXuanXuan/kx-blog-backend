@@ -58,7 +58,6 @@ class TodoController extends Controller {
     ctx.res.setHeader('Content-Type', 'text/event-stream');
     ctx.res.setHeader('Cache-Control', 'no-cache');
     ctx.res.setHeader('Connection', 'keep-alive');
-    ctx.res.setHeader('Access-Control-Allow-Origin', '*'); // 允许跨域
 
     // 获取服务层流式数据
     const stream = await ctx.service.todo.forwardTextToAgent(text);
