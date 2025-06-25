@@ -170,17 +170,46 @@ class BlogController extends Controller {
       ctx.status = 403;
       return (ctx.body = { code: 403, message: '无权限修改，仅作者可操作' });
     }
+    
+    // 保存旧图片路径，用于后续删除
+    const oldCoverImage = blog.cover_image;
+    
     // 解析图片（如有）
     let cover_image = null;
     if (file) {
       cover_image = await this._parseCoverImage(file);
+      if (!cover_image) {
+        // 如果图片解析失败，直接返回
+        return;
+      }
     }
+    
     // 调用服务层更新
     const result = await service.blog.update({ id, title, markdown_content, category, cover_image });
     if (!result) {
       ctx.status = 404;
       return (ctx.body = { code: 404, message: '博客不存在' });
     }
+    
+    // 如果更新成功且上传了新图片，删除旧图片文件
+    if (file && cover_image && oldCoverImage) {
+      try {
+        const uploadDir = this.config.multipart.uploadDir || path.join(this.config.baseDir, 'app/public/images');
+        // 从数据库中的路径提取文件名（去掉/images/前缀）
+        const oldFileName = oldCoverImage.replace('/images/', '');
+        const oldFilePath = path.join(uploadDir, oldFileName);
+        
+        // 检查旧文件是否存在后删除
+        if (fs.existsSync(oldFilePath)) {
+          await fs.promises.unlink(oldFilePath);
+          console.log(`已删除旧图片文件: ${oldFilePath}`);
+        }
+      } catch (error) {
+        // 删除旧图片失败不影响更新操作，只记录日志
+        console.error('删除旧图片文件失败:', error);
+      }
+    }
+    
     ctx.body = { code: 200, message: '文章更新成功' };
   }
 
