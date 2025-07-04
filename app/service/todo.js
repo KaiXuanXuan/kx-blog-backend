@@ -62,7 +62,7 @@ class TodoService extends Service {
 
     // 1. 调用第一个接口获取SQL查询语句
     const client = new CozeAPI({
-      token: 'pat_gnvmwd14tgvHRwlSg688b9W6esrkQP3CfeANCD3Hjm1QVOAc5egMZU0go3dujqJi',
+      token: 'pat_nZlJga0bpHO83GFGwpyY7KPVqXnXW6TRUKdAz3YluRRR14uSm8ha68enPBj1jh3M',
       baseURL: COZE_CN_BASE_URL,
     });
 
